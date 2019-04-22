@@ -1,6 +1,8 @@
-﻿using FlightSimulator.Model.EventArgs;
+using FlightSimulator.Model;
+using FlightSimulator.Model.EventArgs;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +16,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using FlightSimulator.ViewModels;
 
 namespace FlightSimulator.Views
 {
@@ -24,7 +27,7 @@ namespace FlightSimulator.Views
     {
         /// <summary>Current Aileron</summary>
         public static readonly DependencyProperty AileronProperty =
-            DependencyProperty.Register("Aileron", typeof(double), typeof(Joystick),null);
+            DependencyProperty.Register("Aileron", typeof(double), typeof(Joystick), null);
 
         /// <summary>Current Elevator</summary>
         public static readonly DependencyProperty ElevatorProperty =
@@ -42,6 +45,20 @@ namespace FlightSimulator.Views
         ///// <summary>Indicates whether the joystick knob resets its place after being released</summary>
         //public static readonly DependencyProperty ResetKnobAfterReleaseProperty =
         //    DependencyProperty.Register(nameof(ResetKnobAfterRelease), typeof(bool), typeof(VirtualJoystick), new PropertyMetadata(true));
+
+        private ICommand _clearCommand;
+        public ICommand clearCommand
+        {
+            get
+            {
+                return _clearCommand ?? (_clearCommand =
+                new CommandHandler(() => ClearClick()));
+            }
+        }
+        private void ClearClick()
+        {
+            textBox.Clear();
+        }
 
         /// <summary>Current Aileron in degrees from 0 to 360</summary>
         public double Aileron
@@ -108,6 +125,7 @@ namespace FlightSimulator.Views
         private double _prevAileron, _prevElevator;
         private double canvasWidth, canvasHeight;
         private readonly Storyboard centerKnob;
+        private Client myClient;
 
         public Joystick()
         {
@@ -116,8 +134,9 @@ namespace FlightSimulator.Views
             Knob.MouseLeftButtonDown += Knob_MouseLeftButtonDown;
             Knob.MouseLeftButtonUp += Knob_MouseLeftButtonUp;
             Knob.MouseMove += Knob_MouseMove;
-
+            this.DataContext = this;
             centerKnob = Knob.Resources["CenterKnob"] as Storyboard;
+            this.myClient = Client.InstanceClass;
         }
 
         private void Knob_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -159,6 +178,16 @@ namespace FlightSimulator.Views
             Moved?.Invoke(this, new VirtualJoystickEventArgs { Aileron = Aileron, Elevator = Elevator });
             _prevAileron = Aileron;
             _prevElevator = Elevator;
+
+        }
+
+        private void Button_OK(object sender, RoutedEventArgs e)
+        {
+            string[] values = textBox.Text.Split('\n');
+            for (int i = 0; i < values.Length; i++)
+            {
+                this.myClient.sendMessage(values[i]);
+            }
 
         }
 
