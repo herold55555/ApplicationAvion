@@ -1,4 +1,4 @@
-﻿using FlightSimulator.Model;
+using FlightSimulator.Model;
 using FlightSimulator.Model.Interface;
 using FlightSimulator.Views;
 using System;
@@ -13,7 +13,7 @@ namespace FlightSimulator.ViewModels
     public class FlightBoardViewModel : BaseNotify
     {
         private FlightBoardModel myModel;
-
+        private Client myClient;
         private ICommand _connectCommand;
         private ICommand _settingsOpenCommand;
         public ICommand ConnectCommand
@@ -37,20 +37,27 @@ namespace FlightSimulator.ViewModels
         public FlightBoardViewModel()
         {
             this.myModel = new FlightBoardModel();
+            this.myClient = Client.InstanceClass;
         }
         public double Lon
         {
-            get;
+            get
+            {
+                return Convert.ToDouble(this.myModel.Values[0]);
+            }
         }
 
         public double Lat
         {
-            get;
+            get
+            {
+                return Convert.ToDouble(this.myModel.Values[1]);
+            }
         }
         public void Connect()
         {
             this.myModel.StartListening();
-            this.myModel.StartClient();
+            this.myClient.StartClient();
         }
         public void OpenSettingsWindow()
         {
